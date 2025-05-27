@@ -1,0 +1,18 @@
+# Python virtual environment
+pyanagram_solver/.venv/
+pyanagram_solver/venv/
+
+# Python cache files
+pyanagram_solver/__pycache__/
+pyanagram_solver/*.pyc
+pyanagram_solver/*.pyo
+pyanagram_solver/*.pyd
+
+# uv-specific files
+pyanagram_solver/.python-version
+pyanagram_solver/uv.lock
+
+# Other common ignores
+*.log
+*.egg-info/
+.DS_Store
