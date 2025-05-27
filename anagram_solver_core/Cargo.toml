@@ -1,0 +1,13 @@
+[package]
+name = "anagram_solver_core"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+# Add pyo3 here later if building lib.rs for python directly, or keep it separate
+# For now, no external dependencies for pure Rust logic
+# pyo3 = { version = "0.20.0", features = ["extension-module"] } # Example if using PyO3
+
+[lib]
+name = "anagram_solver_core"
+# crate-type = ["cdylib"] # If building for PyO3 directly in this crate

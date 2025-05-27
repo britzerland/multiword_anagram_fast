@@ -1,0 +1,94 @@
+import os
+from typing import List, Optional, Dict, Set
+
+# This will be the Rust extension module. Name depends on maturin config.
+# from .core import Solver as CoreSolver 
+# For now, let's assume maturin makes it available as:
+from pyanagram_solver.core import Solver as CoreSolver
+
+
+class AnagramSolver:
+    def __init__(self, default_dictionary_path: Optional[str] = None):
+        self._solver = CoreSolver()
+        self._bundled_dict_path = os.path.join(
+            os.path.dirname(__file__), "resources"
+        )
+
+        if default_dictionary_path:
+            if default_dictionary_path.lower() == "dictionarya.txt": # example bundled
+                 self.load_dictionary_file(os.path.join(self._bundled_dict_path, "dictionaryA.txt"))
+            # Add more bundled dicts here
+            else: # Assumed to be a custom path
+                self.load_dictionary_file(default_dictionary_path)
+        # else: load a default bundled dictionary if desired, e.g. dictionaryA.txt
+
+    def load_dictionary_file(self, path: str):
+        """Loads words from a .txt file into the solver's dictionary."""
+        try:
+            self._solver.load_dictionary_from_path(path)
+        except Exception as e:
+            raise IOError(f"Failed to load dictionary from {path}: {e}")
+
+    def add_words(self, words: List[str]):
+        """Adds a list of words to the solver's dictionary."""
+        self._solver.load_dictionary_from_words(words)
+        
+    def add_word(self, word: str):
+        """Adds a single word to the solver's dictionary."""
+        self._solver.add_word(word)
+
+    def solve(
+        self,
+        phrase: str,
+        must_start_with: Optional[str] = None,
+        can_only_ever_start_with: Optional[str] = None,
+        must_not_start_with: Optional[str] = None,
+        max_words: Optional[int] = None,
+        output_file: Optional[str] = "anagram_solutions.txt",
+    ) -> List[List[str]]:
+        """
+        Finds multi-word anagrams for the given phrase.
+
+        Args:
+            phrase: The input string of letters to anagram.
+            must_start_with: A string of characters (e.g., "TRT"). Solutions must contain
+                             words starting with these characters, matching counts (e.g., two Ts, one R).
+            can_only_ever_start_with: A string of characters (e.g., "ABC"). All words in any
+                                      solution must start with one of these characters.
+            must_not_start_with: A string of characters (e.g., "XYZ"). No word in any solution
+                                 may start with one of these characters.
+            max_words: The maximum number of words allowed in a solution.
+            output_file: If provided, results are saved to this file. Set to None to disable.
+
+        Returns:
+            A list of solutions, where each solution is a list of words.
+            Solutions are sorted by quality (fewest words first, then by max length of shortest word).
+        """
+        if not phrase:
+            return []
+
+        results = self._solver.solve(
+            phrase,
+            must_start_with,
+            can_only_ever_start_with,
+            must_not_start_with,
+            max_words,
+        )
+
+        if output_file:
+            try:
+                with open(output_file, "w", encoding="utf-8") as f:
+                    for sol_list in results:
+                        f.write(" ".join(sol_list) + "\n")
+                print(f"Solutions saved to {os.path.join(os.getcwd(), output_file)}")
+            except IOError as e:
+                print(f"Warning: Could not write solutions to file {output_file}: {e}")
+        
+        return results
+
+    def get_bundled_dictionary_path(self, name: str = "ACDLC0A.txt") -> str:
+        """Returns the path to a bundled dictionary."""
+        path = os.path.join(self._bundled_dict_path, name)
+        if not os.path.exists(path):
+            raise FileNotFoundError(f"Bundled dictionary '{name}' not found at {path}")
+        return path
