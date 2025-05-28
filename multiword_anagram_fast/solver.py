@@ -16,12 +16,13 @@ class AnagramSolver:
 
         if default_dictionary_path:
             if default_dictionary_path.lower() == "default": # example bundled
-                 self.load_dictionary_file(os.path.join(self._bundled_dict_path, "ACDLC0A.txt"))
+                self.load_dictionary_file(os.path.join(self._bundled_dict_path, "ACDLC0A.txt"))
             # Add more bundled dicts here
             else: # Assumed to be a custom path
                 self.load_dictionary_file(default_dictionary_path)
-        # else: load a default bundled dictionary if desired, e.g. dictionaryA.txt
-
+        else: #load a default bundled dictionary if desired, e.g. dictionaryA.txt
+            self.load_dictionary_file(os.path.join(self._bundled_dict_path, "ACDLC0A.txt"))
+            
     def load_dictionary_file(self, path: str):
         """Loads words from a .txt file into the solver's dictionary."""
         try:
@@ -43,7 +44,10 @@ class AnagramSolver:
         must_start_with: Optional[str] = None,
         can_only_ever_start_with: Optional[str] = None,
         must_not_start_with: Optional[str] = None,
-        max_words: Optional[int] = None,
+        max_words: Optional[int] = 4,
+        min_word_length: Optional[int] = 2,
+        timeout_seconds: Optional[float] = 30, 
+        max_solutions: Optional[int] = 20000,    
         output_file: Optional[str] = "anagram_solutions.txt",
     ) -> List[List[str]]:
         """
@@ -73,6 +77,9 @@ class AnagramSolver:
             can_only_ever_start_with,
             must_not_start_with,
             max_words,
+            min_word_length,
+            timeout_seconds, 
+            max_solutions,   
         )
 
         if output_file:

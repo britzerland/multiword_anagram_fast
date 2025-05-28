@@ -42,7 +42,10 @@ impl PySolver {
         must_start_with=None,
         can_only_ever_start_with=None,
         must_not_start_with=None,
-        max_words=None
+        max_words=None,
+        min_word_length=None,
+        timeout_seconds=None, 
+        max_solutions=None 
     ))]
     fn solve(
         &self,
@@ -51,6 +54,9 @@ impl PySolver {
         can_only_ever_start_with: Option<String>,
         must_not_start_with: Option<String>,
         max_words: Option<usize>,
+        min_word_length: Option<usize>, 
+        timeout_seconds: Option<f64>, 
+        max_solutions: Option<usize>, 
     ) -> PyResult<Vec<Vec<String>>> {
         // These parse functions return Option<HashMap/HashSet> so those types need to be in scope
         let rust_constraints = RustSolverConstraints {
@@ -58,6 +64,9 @@ impl PySolver {
             can_only_ever_start_with: char_utils::parse_char_list_to_set(can_only_ever_start_with.as_deref()),
             must_not_start_with: char_utils::parse_char_list_to_set(must_not_start_with.as_deref()),
             max_words,
+            min_word_length,
+            timeout_seconds, 
+            max_solutions,  
         };
         
         let solutions = self.solver.solve(&phrase, &rust_constraints);
