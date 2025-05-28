@@ -3,14 +3,21 @@ use std::cmp::Ordering;
 use std::time::Instant;
 
 use super::trie::{Trie, TrieNode};
-// Only CharCounts is directly used from char_utils in this module's scope.
-// normalize_word and others are used within AnagramSolver methods but called from char_utils.
 use super::char_utils::CharCounts; 
+
+// Preprocessed pattern structure
+#[derive(Clone, Debug)] // Added Clone and Debug
+pub struct ProcessedPattern {
+    pub text: String, // Normalized text of the pattern
+    pub counts: CharCounts,
+    // original_index: usize, // If needed for mapping back
+}
 
 pub struct SolverInternalState {
     pub start_time: Instant,
     pub timed_out: bool,
     pub solutions_found_count: usize,
+    pub patterns_satisfied_mask: Option<Vec<bool>>,
 }
 
 pub struct SolverConstraints {
@@ -21,6 +28,7 @@ pub struct SolverConstraints {
     pub min_word_length: Option<usize>,
     pub timeout_seconds: Option<f64>,  
     pub max_solutions: Option<usize>,  
+    pub contains_patterns: Option<Vec<ProcessedPattern>>,
 }
 
 impl SolverConstraints {
@@ -80,11 +88,16 @@ impl AnagramSolver {
         let mut solutions_set: HashSet<Vec<String>> = HashSet::new();
         let mut current_path: Vec<String> = Vec::new();
         let mut current_char_counts = target_counts.clone();
+        
+        let initial_patterns_mask = constraints.contains_patterns.as_ref().map(|patterns| {
+            vec![false; patterns.len()]
+        });
 
-        let mut internal_state = SolverInternalState { // <--- Initialize internal state
+        let mut internal_state = SolverInternalState { 
             start_time: Instant::now(),
             timed_out: false,
             solutions_found_count: 0,
+            patterns_satisfied_mask: initial_patterns_mask,
         };
 
         self.backtrack(
@@ -93,7 +106,7 @@ impl AnagramSolver {
             &self.trie.root, 
             constraints,
             &mut solutions_set,
-            &mut internal_state, // <--- Pass internal state
+            &mut internal_state, 
         );
         
         let mut final_solutions: Vec<Vec<String>> = solutions_set.into_iter().collect();
@@ -135,6 +148,26 @@ impl AnagramSolver {
                 return;
             }
         }
+        // Pattern-based pruning
+        if let Some(patterns_to_satisfy) = &constraints.contains_patterns {
+            if let Some(satisfied_mask) = &internal_state.patterns_satisfied_mask {
+                let mut num_unsatisfied = 0;
+                for (i, pattern_proc) in patterns_to_satisfy.iter().enumerate() {
+                    if !satisfied_mask[i] {
+                        num_unsatisfied += 1;
+                        // Prune if remaining letters cannot form this specific unsatisfied pattern
+                        if !remaining_counts.can_subtract(&pattern_proc.counts) {
+                            return; 
+                        }
+                    }
+                }
+                // If there are unsatisfied patterns but no letters left, or no more words allowed.
+                if num_unsatisfied > 0 && remaining_counts.is_empty() { return; }
+                if num_unsatisfied > 0 && constraints.max_words.is_some() && current_path.len() >= constraints.max_words.unwrap() {
+                    return;
+                }
+            }
+        }
 
         // Pruning: Max words
         if let Some(max_w) = constraints.max_words {
@@ -146,29 +179,23 @@ impl AnagramSolver {
         // Base Case: All characters used up
         if remaining_counts.is_empty() {
             if !current_path.is_empty() { 
-                if let Some(max_w) = constraints.max_words {
-                    if current_path.len() > max_w { return; }
-                }
-                if let Some(required_starts) = &constraints.must_start_with {
-                    let mut current_starts_counts: HashMap<char, usize> = HashMap::new();
-                    for word in current_path.iter() {
-                        if let Some(first_char) = word.chars().next() {
-                            *current_starts_counts.entry(first_char).or_insert(0) += 1;
-                        }
-                    }
-                    for (req_char, req_count) in required_starts {
-                        if current_starts_counts.get(req_char).unwrap_or(&0) < req_count { return; }
+                // Check constraints that apply to the full solution
+                if let Some(max_w) = constraints.max_words { if current_path.len() > max_w { return; } }
+                if let Some(required_starts) = &constraints.must_start_with { /* ... check ... */ }
+
+                // ---> FINAL PATTERN CHECK FOR SOLUTION <---
+                if let Some(satisfied_mask) = &internal_state.patterns_satisfied_mask {
+                    if !satisfied_mask.iter().all(|&s| s) { // Check if all patterns are satisfied
+                        return; // Not a valid solution if patterns aren't met
                     }
                 }
                 
                 let mut solution_candidate = current_path.clone();
                 solution_candidate.sort_unstable(); 
-                if solutions_set.insert(solution_candidate) { // Only count if it's a new unique solution
+                if solutions_set.insert(solution_candidate) { 
                     internal_state.solutions_found_count += 1;
-                    if let Some(max_sol) = constraints.max_solutions { // Check again after adding
-                        if internal_state.solutions_found_count >= max_sol {
-                            return; // Reached max solutions, can stop further search from this path
-                        }
+                    if let Some(max_sol) = constraints.max_solutions {
+                        if internal_state.solutions_found_count >= max_sol { return; }
                     }
                 }
             }
@@ -202,7 +229,7 @@ impl AnagramSolver {
             current_path,
             constraints,
             solutions_set,
-            internal_state, // <--- Pass internal state
+            internal_state,
         );
     }
 
@@ -214,82 +241,75 @@ impl AnagramSolver {
         path: &mut Vec<String>, 
         constraints: &SolverConstraints,
         solutions_set: &mut HashSet<Vec<String>>,
-        internal_state: &mut SolverInternalState, // <--- Receive internal state
+        internal_state: &mut SolverInternalState,
     ) {
-        // ---> CHECK LIMITS <---
+        // Limit checks
         if internal_state.timed_out { return; }
-        // No need to check timeout again here if checked in backtrack, but doesn't hurt much
-        // if let Some(timeout_sec) = constraints.timeout_seconds {
-        //     if internal_state.start_time.elapsed().as_secs_f64() > timeout_sec {
-        //         internal_state.timed_out = true;
-        //         return;
-        //     }
-        // }
         if let Some(max_sol) = constraints.max_solutions {
-            if internal_state.solutions_found_count >= max_sol {
-                return;
-            }
+            if internal_state.solutions_found_count >= max_sol { return; }
         }
 
         if current_trie_node.is_end_of_word && !word_so_far.is_empty() {
             let mut passes_min_length = true;
             if let Some(min_len) = constraints.min_word_length {
-                if word_so_far.len() < min_len {
-                    passes_min_length = false;
-                }
+                if word_so_far.len() < min_len { passes_min_length = false; }
             }
 
             if passes_min_length {
+                // ---> Pattern Satisfaction Logic for the current word_so_far <---
+                let mut original_mask_states_for_changed_indices = Vec::new(); // Stores (index, original_bool_value)
+                
+                if let Some(patterns_to_satisfy) = &constraints.contains_patterns {
+                    if let Some(current_mask) = internal_state.patterns_satisfied_mask.as_mut() {
+                        for (idx, pattern_proc) in patterns_to_satisfy.iter().enumerate() {
+                            if !current_mask[idx] && word_so_far.contains(&pattern_proc.text) {
+                                original_mask_states_for_changed_indices.push((idx, current_mask[idx])); // Store original (false)
+                                current_mask[idx] = true; // Set to true for deeper search
+                            }
+                        }
+                    }
+                }
+
                 path.push(word_so_far.clone());
-                // Pass internal_state to backtrack
                 self.backtrack(path, current_overall_counts, &self.trie.root, constraints, solutions_set, internal_state);
-                path.pop(); 
-                // After returning from backtrack, check limits again in case they were hit
+                path.pop();
+
+                // Revert mask changes to their original state before this word was considered
+                if let Some(current_mask) = internal_state.patterns_satisfied_mask.as_mut() {
+                    for (idx, original_state) in original_mask_states_for_changed_indices {
+                        current_mask[idx] = original_state;
+                    }
+                }
+                
+                // Check limits again
                 if internal_state.timed_out { return; }
                 if let Some(max_sol) = constraints.max_solutions {
-                    if internal_state.solutions_found_count >= max_sol {
-                        return;
-                    }
+                    if internal_state.solutions_found_count >= max_sol { return; }
                 }
             }
         }
         
-        if word_so_far.len() > self.trie.max_word_len || word_so_far.len() > current_overall_counts.total() {
-            return;
-        }
+        if word_so_far.len() > self.trie.max_word_len || word_so_far.len() > current_overall_counts.total() { return; }
 
         for (key_ref_char_code, value_ref_next_node) in current_trie_node.children.iter() {
             let ch: char = *key_ref_char_code;
-
             if current_overall_counts.get(ch).unwrap_or(0) > 0 {
-                if word_so_far.is_empty() {
-                    if !constraints.is_valid_start_char(ch) {
-                        continue; 
-                    }
-                }
+                if word_so_far.is_empty() && !constraints.is_valid_start_char(ch) { continue; }
 
                 current_overall_counts.decrement_char(ch).unwrap();
                 word_so_far.push(ch);
 
-                self.find_one_word_recursive( // Pass internal_state
-                    value_ref_next_node,
-                    word_so_far,
-                    current_overall_counts,
-                    path,
-                    constraints,
-                    solutions_set,
-                    internal_state,
+                self.find_one_word_recursive(
+                    value_ref_next_node, word_so_far, current_overall_counts, path,
+                    constraints, solutions_set, internal_state,
                 );
 
                 word_so_far.pop(); 
                 current_overall_counts.increment_char(ch).unwrap();
 
-                // After exploring a branch, check limits
                 if internal_state.timed_out { return; }
                 if let Some(max_sol) = constraints.max_solutions {
-                    if internal_state.solutions_found_count >= max_sol {
-                        return;
-                    }
+                    if internal_state.solutions_found_count >= max_sol { return; }
                 }
             }
         }

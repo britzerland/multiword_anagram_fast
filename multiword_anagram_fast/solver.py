@@ -50,7 +50,8 @@ class AnagramSolver:
         max_words: Optional[int] = 4,
         min_word_length: Optional[int] = 2,
         timeout_seconds: Optional[float] = 30, 
-        max_solutions: Optional[int] = 20000,    
+        max_solutions: Optional[int] = 20000,
+        contains_patterns: Optional[List[str]] = None,
         output_file: Optional[str] = None,
     ) -> str: #     -> List[List[str]]:
         """
@@ -77,11 +78,14 @@ class AnagramSolver:
         if output_file is None:
             # create a descriptive file name
             output_file = f"anagram_{phrase}"
-            if must_start_with is not None: output_file += f"_must_{must_start_with.upper()}"
-            if can_only_ever_start_with is not None:  output_file += f"_only_{can_only_ever_start_with.upper()}"
-            if must_not_start_with is not None:  output_file += f"_not_{must_not_start_with.upper()}"
-            if max_words is not None: output_file += f"_maxW_{max_words}"
-            if min_word_length is not None: output_file += f"_minL_{min_word_length}"
+            if must_start_with is not None: output_file += f"_must{must_start_with.upper()}"
+            if can_only_ever_start_with is not None:  output_file += f"_only{can_only_ever_start_with.upper()}"
+            if must_not_start_with is not None:  output_file += f"_not{must_not_start_with.upper()}"
+            if max_words is not None: output_file += f"_maxW{max_words}"
+            if min_word_length is not None: output_file += f"_minL{min_word_length}"
+            if contains_patterns is not None:
+                for pat in contains_patterns:
+                    if pat: output_file += f"_pat{pat}"
             output_file += ".txt"
 
         # test we can even write to file at all before doing all the processing.
@@ -103,6 +107,7 @@ class AnagramSolver:
             min_word_length,
             timeout_seconds, 
             max_solutions,   
+            contains_patterns,
         )
 
         try:

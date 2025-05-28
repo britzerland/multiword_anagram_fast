@@ -1,12 +1,16 @@
 use pyo3::prelude::*;
-// PyList, PyString, PyDict, PySet were unused directly.
 use std::collections::{HashMap, HashSet}; // These ARE needed for char_utils return types
 
 mod char_utils;
 mod trie;
 mod solver;
 
-use solver::{AnagramSolver as RustAnagramSolver, SolverConstraints as RustSolverConstraints};
+use solver::{
+    AnagramSolver as RustAnagramSolver, 
+    SolverConstraints as RustSolverConstraints,
+    ProcessedPattern as RustProcessedPattern
+};
+use char_utils::CharCounts as RustCharCounts;
 
 #[pyclass(name = "Solver")]
 struct PySolver {
@@ -45,7 +49,8 @@ impl PySolver {
         max_words=None,
         min_word_length=None,
         timeout_seconds=None, 
-        max_solutions=None 
+        max_solutions=None,
+        contains_patterns=None
     ))]
     fn solve(
         &self,
@@ -57,7 +62,30 @@ impl PySolver {
         min_word_length: Option<usize>, 
         timeout_seconds: Option<f64>, 
         max_solutions: Option<usize>, 
+        contains_patterns: Option<Vec<String>>,
     ) -> PyResult<Vec<Vec<String>>> {
+
+        let processed_patterns_opt: Option<Vec<RustProcessedPattern>> = 
+            contains_patterns.map(|patterns_vec| {
+                patterns_vec.into_iter().filter_map(|p_str| {
+                    let normalized_text = char_utils::normalize_word(&p_str); // Use char_utils directly
+                    if normalized_text.is_empty() {
+                        None // Skip empty patterns
+                    } else {
+                        // It's better if CharCounts::from_str ignores non-alphabetic
+                        // or if normalize_word ensures only alphabetic.
+                        // Assuming normalize_word ensures pattern is only alphabetic.
+                        match RustCharCounts::from_str(&normalized_text) {
+                            Ok(counts) => Some(RustProcessedPattern {
+                                text: normalized_text,
+                                counts,
+                            }),
+                            Err(_) => None, // Should not happen if normalized_text is good
+                        }
+                    }
+                }).collect()
+            });
+
         // These parse functions return Option<HashMap/HashSet> so those types need to be in scope
         let rust_constraints = RustSolverConstraints {
             must_start_with: char_utils::parse_char_list_to_counts(must_start_with.as_deref()),
@@ -67,6 +95,7 @@ impl PySolver {
             min_word_length,
             timeout_seconds, 
             max_solutions,  
+            contains_patterns: processed_patterns_opt,
         };
         
         let solutions = self.solver.solve(&phrase, &rust_constraints);
