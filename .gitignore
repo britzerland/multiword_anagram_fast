@@ -18,6 +18,9 @@ multiword_anagram_fast/uv.lock
 # jupyter notebooks
 multiword_anagram_fast/.ipynb_checkpoints/
 *.ipynb
+.ipynb_checkpoints/
+uv.lock
+solutions*.txt
 
 # maturin build stuff
 multiword_anagram_fast_core/target/
