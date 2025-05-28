@@ -1,6 +1,6 @@
 use pyo3::prelude::*;
-use pyo3::types::{PyList, PyString, PyDict, PySet};
-use std::collections::{HashMap, HashSet};
+// PyList, PyString, PyDict, PySet were unused directly.
+use std::collections::{HashMap, HashSet}; // These ARE needed for char_utils return types
 
 mod char_utils;
 mod trie;
@@ -52,6 +52,7 @@ impl PySolver {
         must_not_start_with: Option<String>,
         max_words: Option<usize>,
     ) -> PyResult<Vec<Vec<String>>> {
+        // These parse functions return Option<HashMap/HashSet> so those types need to be in scope
         let rust_constraints = RustSolverConstraints {
             must_start_with: char_utils::parse_char_list_to_counts(must_start_with.as_deref()),
             can_only_ever_start_with: char_utils::parse_char_list_to_set(can_only_ever_start_with.as_deref()),
@@ -64,8 +65,9 @@ impl PySolver {
     }
 }
 
+// Updated #[pymodule] signature for PyO3 >= 0.18 (approx)
 #[pymodule]
-fn pyanagram_solver_core(_py: Python, m: &PyModule) -> PyResult<()> {
+fn pyanagram_solver_core(_py: Python<'_>, m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PySolver>()?;
     Ok(())
 }

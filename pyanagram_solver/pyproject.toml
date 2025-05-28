@@ -13,12 +13,14 @@ classifiers = [
     "Programming Language :: Python :: Implementation :: CPython",
     "Programming Language :: Python :: Implementation :: PyPy",
 ]
-dependencies = [] # Python dependencies if any
+dependencies = [
+    "maturin>=1.8.6",
+] # Python dependencies if any
 
 [tool.maturin]
 features = ["pyo3/extension-module"] # If pyo3 features are conditional
 # For a workspace structure, point to the Rust crate:
-# manifest-path = "../anagram_solver_core/Cargo.toml" 
+manifest-path = "../anagram_solver_core/Cargo.toml" 
 # For a non-workspace (single crate for lib and bindings, as sketched):
 # This assumes Cargo.toml in pyanagram_solver/ is for the bindings module.
 # The current `lib.rs` is in `anagram_solver_core`. A common setup is:
@@ -32,5 +34,5 @@ features = ["pyo3/extension-module"] # If pyo3 features are conditional
 # If anagram_solver_core/Cargo.toml has `crate-type = ["cdylib"]` and pyo3 dependency,
 # then maturin can build it directly.
 # The manifest-path in pyproject.toml would point to anagram_solver_core/Cargo.toml
-manifest-path = "../anagram_solver_core/Cargo.toml" 
+
 module-name = "pyanagram_solver.core" # where the rust extension will be available

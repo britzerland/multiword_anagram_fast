@@ -1,7 +1,10 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::{HashMap, HashSet}; // Keep these for SolverConstraints
 use std::cmp::Ordering;
 use super::trie::{Trie, TrieNode};
-use super::char_utils::{CharCounts, normalize_word, index_to_char, parse_char_list_to_set, parse_char_list_to_counts};
+// Only CharCounts is directly used from char_utils in this module's scope.
+// normalize_word and others are used within AnagramSolver methods but called from char_utils.
+use super::char_utils::CharCounts; 
+
 
 pub struct SolverConstraints {
     pub must_start_with: Option<HashMap<char, usize>>,
@@ -11,7 +14,6 @@ pub struct SolverConstraints {
 }
 
 impl SolverConstraints {
-    // Helper to check if a character is a valid start for a word
     fn is_valid_start_char(&self, c: char) -> bool {
         if let Some(disallowed) = &self.must_not_start_with {
             if disallowed.contains(&c) {
@@ -55,7 +57,7 @@ impl AnagramSolver {
     pub fn solve(&self, phrase: &str, constraints: &SolverConstraints) -> Vec<Vec<String>> {
         let target_counts = match CharCounts::from_str(phrase) {
             Ok(counts) => counts,
-            Err(_) => return Vec::new(), // Invalid input phrase
+            Err(_) => return Vec::new(), 
         };
 
         if target_counts.is_empty() || self.trie.get_min_word_len() == 0 {
@@ -69,33 +71,22 @@ impl AnagramSolver {
         self.backtrack(
             &mut current_path,
             &mut current_char_counts,
-            &self.trie.root, // Start word search from Trie root
+            &self.trie.root, 
             constraints,
             &mut solutions_set,
         );
         
         let mut final_solutions: Vec<Vec<String>> = solutions_set.into_iter().collect();
 
-        // Sort solutions
         final_solutions.sort_by(|a, b| {
-            // 1. By number of words (ascending)
             let len_cmp = a.len().cmp(&b.len());
             if len_cmp != Ordering::Equal {
                 return len_cmp;
             }
-
-            // 2. By length of the shortest word (descending)
             let min_len_a = a.iter().map(|w| w.len()).min().unwrap_or(0);
             let min_len_b = b.iter().map(|w| w.len()).min().unwrap_or(0);
-            let min_len_cmp = min_len_b.cmp(&min_len_a); // Descending
-            if min_len_cmp != Ordering::Equal {
-                return min_len_cmp;
-            }
-            
-            // 3. Lexicographically (using already sorted words from HashSet insertion)
-            // The HashSet stores Vec<String> where inner Vec was sorted.
-            // So, direct comparison of Vec<String> works.
-            a.cmp(b)
+            min_len_b.cmp(&min_len_a) // Descending
+                .then_with(|| a.cmp(b)) // Lexicographical tie-breaking
         });
 
         final_solutions
@@ -105,32 +96,23 @@ impl AnagramSolver {
         &self,
         current_path: &mut Vec<String>,
         remaining_counts: &mut CharCounts,
-        // previous_word_start_node: &TrieNode, // For ordering words to avoid permutations like "a b" and "b a"
-                                               // Simpler: sort path before inserting into HashSet
-        start_node_for_this_level: &TrieNode, // To ensure lexicographical order of words in a solution path, if needed.
-                                              // For now, we sort the full path Vec<String> before inserting into HashSet.
-                                              // This means start_node_for_this_level is always trie.root.
+        _start_node_for_this_level: &TrieNode, // Prefixed with _ as it's unused currently
         constraints: &SolverConstraints,
         solutions_set: &mut HashSet<Vec<String>>,
     ) {
-        // Pruning: Max words
         if let Some(max_w) = constraints.max_words {
             if current_path.len() > max_w {
                 return;
             }
         }
 
-        // Base Case: All characters used up
         if remaining_counts.is_empty() {
-            if !current_path.is_empty() { // Must have at least one word
-                // Check max_words constraint again (solution might be formed with exactly max_words)
+            if !current_path.is_empty() { 
                 if let Some(max_w) = constraints.max_words {
-                    if current_path.len() > max_w {
+                    if current_path.len() > max_w { // Check again, as a word might have completed it
                         return;
                     }
                 }
-
-                // Check 'must_start_with' constraint
                 if let Some(required_starts) = &constraints.must_start_with {
                     let mut current_starts_counts: HashMap<char, usize> = HashMap::new();
                     for word in current_path.iter() {
@@ -140,34 +122,29 @@ impl AnagramSolver {
                     }
                     for (req_char, req_count) in required_starts {
                         if current_starts_counts.get(req_char).unwrap_or(&0) < req_count {
-                            return; // Constraint not met
+                            return; 
                         }
                     }
                 }
-
                 let mut solution_candidate = current_path.clone();
-                solution_candidate.sort_unstable(); // Normalize for HashSet
+                solution_candidate.sort_unstable(); 
                 solutions_set.insert(solution_candidate);
             }
             return;
         }
         
-        // Pruning: If remaining characters are fewer than the shortest word in dictionary
         if remaining_counts.total() < self.trie.get_min_word_len() {
             return;
         }
-        // Pruning: if current_path.len() == max_words and remaining_counts not empty
         if let Some(max_w) = constraints.max_words {
             if current_path.len() == max_w && !remaining_counts.is_empty() {
                 return;
             }
         }
 
-
-        // Recursive step: Find one word
         let mut word_buffer = String::new();
         self.find_one_word_recursive(
-            &self.trie.root, // Always start search for a new word from the trie root
+            &self.trie.root, 
             &mut word_buffer,
             remaining_counts,
             current_path,
@@ -178,51 +155,43 @@ impl AnagramSolver {
 
     fn find_one_word_recursive(
         &self,
-        current_trie_node: &TrieNode,
+        current_trie_node: &TrieNode, // current_trie_node is &TrieNode
         word_so_far: &mut String,
-        current_overall_counts: &mut CharCounts, // Counts for the whole anagram phrase
-        path: &mut Vec<String>, // Current list of words in the anagram
+        current_overall_counts: &mut CharCounts, 
+        path: &mut Vec<String>, 
         constraints: &SolverConstraints,
         solutions_set: &mut HashSet<Vec<String>>,
     ) {
-        // If current_trie_node is a word
         if current_trie_node.is_end_of_word && !word_so_far.is_empty() {
-            // This word is a candidate. Add it to path and backtrack for more words.
             path.push(word_so_far.clone());
             self.backtrack(path, current_overall_counts, &self.trie.root, constraints, solutions_set);
-            path.pop(); // Backtrack: remove word from path
+            path.pop(); 
         }
         
-        // Pruning: if word_so_far is already longer than any word in dict or any remaining letters
         if word_so_far.len() > self.trie.max_word_len || word_so_far.len() > current_overall_counts.total() {
             return;
         }
 
+        // Using .iter() for clarity on types
+        for (key_ref_char_code, value_ref_next_node) in current_trie_node.children.iter() {
+            // Now, key_ref_char_code is definitely &char
+            // And value_ref_next_node is definitely &TrieNode
 
-        // Explore children
-        for (char_code, next_node) in ¤t_trie_node.children {
-            let ch = *char_code; // This is already char, not index
+            let ch: char = *key_ref_char_code; // Dereference &char to get char
 
-            // Check if character is available
             if current_overall_counts.get(ch).unwrap_or(0) > 0 {
-                // Apply start-of-word constraints if this is the first letter
                 if word_so_far.is_empty() {
                     if !constraints.is_valid_start_char(ch) {
-                        continue; // Skip this branch for this word
+                        continue; 
                     }
-                    // Lexicographical ordering for words in a path (to avoid permutations if not sorting path later)
-                    // If path is not empty, this new word must be >= last word in path
-                    // This is complex if not just sorting path. For now, rely on sorting path.
-                    // if !path.is_empty() && &ch.to_string() < path.last().unwrap().get(0..1).unwrap_or("") {
-                    //    continue;
-                    // }
                 }
 
-                current_overall_counts.0[super::char_utils::char_to_index(ch).unwrap()] -= 1;
+                current_overall_counts.decrement_char(ch).unwrap();
                 word_so_far.push(ch);
 
+                // value_ref_next_node is &TrieNode, which is what the function expects.
                 self.find_one_word_recursive(
-                    next_node,
+                    value_ref_next_node, // Pass the reference directly
                     word_so_far,
                     current_overall_counts,
                     path,
@@ -230,8 +199,8 @@ impl AnagramSolver {
                     solutions_set,
                 );
 
-                word_so_far.pop(); // Backtrack char
-                current_overall_counts.0[super::char_utils::char_to_index(ch).unwrap()] += 1; // Backtrack count
+                word_so_far.pop(); 
+                current_overall_counts.increment_char(ch).unwrap();
             }
         }
     }
