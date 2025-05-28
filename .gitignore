@@ -12,6 +12,17 @@ pyanagram_solver/*.pyd
 pyanagram_solver/.python-version
 pyanagram_solver/uv.lock
 
+# jupyter notebooks
+pyanagram_solver/.ipynb_checkpoints/
+*.ipynb
+
+# maturin build stuff
+anagram_solver_core/target/
+anagram_solver_core/Cargo.lock
+
+#venv
+venv/
+
 # Other common ignores
 *.log
 *.egg-info/
