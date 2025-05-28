@@ -93,8 +93,8 @@ impl PySolver {
             must_not_start_with: char_utils::parse_char_list_to_set(must_not_start_with.as_deref()),
             max_words,
             min_word_length,
-            timeout_seconds, 
-            max_solutions,  
+            timeout_seconds,
+            max_solutions,
             contains_patterns: processed_patterns_opt,
         };
         
