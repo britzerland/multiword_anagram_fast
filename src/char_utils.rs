@@ -123,3 +123,26 @@ pub fn parse_char_list_to_counts(s: Option<&str>) -> Option<HashMap<char, usize>
         counts
     })
 }
+
+
+#[cfg(test)]
+mod tests {
+    use super::*; // Import items from the outer module
+
+    #[test]
+    fn test_char_counts_from_str() {
+        let counts = CharCounts::from_str("apple!").unwrap();
+        assert_eq!(counts.get('a'), Some(1));
+        assert_eq!(counts.get('p'), Some(2));
+        assert_eq!(counts.get('l'), Some(1));
+        assert_eq!(counts.get('e'), Some(1));
+        assert_eq!(counts.get('z'), Some(0)); // Or use get('!').is_none() if strict
+        assert_eq!(counts.total(), 5);
+    }
+
+    #[test]
+    fn test_normalize_word() {
+        assert_eq!(normalize_word("  Apple Pie!  "), "applepie");
+    }
+    
+}

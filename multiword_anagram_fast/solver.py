@@ -41,6 +41,57 @@ class AnagramSolver:
         self._solver.add_word(word)
 
 
+    def _solve(
+        self,
+        phrase: str,
+        must_start_with: Optional[str] = None,
+        can_only_ever_start_with: Optional[str] = None,
+        must_not_start_with: Optional[str] = None,
+        contains_patterns: Optional[List[str]] = None,
+        max_words: Optional[int] = 4,
+        min_word_length: Optional[int] = 2,
+        timeout_seconds: Optional[float] = 30, 
+        max_solutions: Optional[int] = 20000,
+        output_file: Optional[str] = None,
+    ) -> List[List[str]]:
+        """
+        Finds multi-word anagrams for the given phrase.
+
+        Args:
+            phrase: The input string of letters to anagram.
+            must_start_with: A string of characters (e.g., "TRT"). Solutions must contain
+                             words starting with these characters, matching counts (e.g., two Ts, one R).
+            can_only_ever_start_with: A string of characters (e.g., "ABC"). All words in any
+                                      solution must start with one of these characters.
+            contains_patterns: A list of strings. Answers must contain ALL of these patterns
+                at least ONCE at any point. Spaces are not ignored when apttern matching.
+            must_not_start_with: A string of characters (e.g., "XYZ"). No word in any solution
+                                 may start with one of these characters.
+            max_words: The maximum number of words allowed in a solution.
+            min_word_length: Dont allow smaller words if you dont want them.
+            timeout_seconds: Stop it from running forever on huge anagrams.
+            max_solutions: Stop at 20000 solutions. Its not like you are reading all those...
+            output_file: If provided, results are saved to this file. Set to None to disable.
+
+        Returns:
+            A string that is path to results txt file.
+            Solutions are sorted by quality (fewest words first, then by max length of shortest word).
+        """
+
+        results = self._solver.solve(
+            phrase,
+            must_start_with,
+            can_only_ever_start_with,
+            must_not_start_with,
+            max_words,
+            min_word_length,
+            timeout_seconds, 
+            max_solutions,   
+            contains_patterns,
+        )
+
+        return results
+
     def solve(
         self,
         phrase: str,
@@ -77,6 +128,7 @@ class AnagramSolver:
             A string that is path to results txt file.
             Solutions are sorted by quality (fewest words first, then by max length of shortest word).
         """
+
         if not phrase:
             return []
         phrase = phrase.replace(" ","")
@@ -103,19 +155,15 @@ class AnagramSolver:
             print(f"Warning: Could not write to file {output_file}: {e}")
             print("Aborting.")
             return ""
-
-        results = self._solver.solve(
-            phrase,
-            must_start_with,
-            can_only_ever_start_with,
-            must_not_start_with,
-            max_words,
-            min_word_length,
-            timeout_seconds, 
-            max_solutions,   
-            contains_patterns,
+        
+        # get results
+        results = self._solve(
+            phrase, must_start_with, can_only_ever_start_with, 
+            must_not_start_with, contains_patterns, max_words, min_word_length, 
+            timeout_seconds, max_solutions, output_file,  
         )
-
+        
+        # write results to output file
         try:
             with open(output_file, "w", encoding="utf-8") as f:
                 for sol_list in results:
@@ -125,6 +173,7 @@ class AnagramSolver:
             print(f"Warning: Could not write solutions to file {output_file}: {e}")
         
         return output_file
+
 
     def get_bundled_dictionary_path(self, name: str = "ACDLC0A.txt") -> str:
         """Returns the path to a bundled dictionary."""

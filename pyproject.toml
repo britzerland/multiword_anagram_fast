@@ -36,3 +36,8 @@ manifest-path = "./Cargo.toml"
 # The manifest-path in pyproject.toml would point to multiword_anagram_fast_core/Cargo.toml
 
 module-name = "multiword_anagram_fast.core" # where the rust extension will be available
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3.5",
+]

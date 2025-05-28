@@ -45,3 +45,48 @@ impl Trie {
         if self.min_word_len == usize::MAX { 0 } else { self.min_word_len }
     }
 }
+
+
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_trie_insert_and_is_end_of_word() {
+        let mut trie = Trie::new();
+        trie.insert("apple");
+        trie.insert("apply");
+
+        // Helper to check if a word exists (is_end_of_word at its node)
+        fn check_word(node: &TrieNode, word: &str) -> bool {
+            let mut current = node;
+            for c in word.chars() {
+                if let Some(next_node) = current.children.get(&c) {
+                    current = next_node;
+                } else {
+                    return false;
+                }
+            }
+            current.is_end_of_word
+        }
+
+        assert!(check_word(&trie.root, "apple"));
+        assert!(check_word(&trie.root, "apply"));
+        assert!(!check_word(&trie.root, "app")); // Prefix, not full word
+        assert!(!check_word(&trie.root, "apples"));
+    }
+
+    #[test]
+    fn test_trie_min_max_len() {
+        let mut trie = Trie::new();
+        assert_eq!(trie.get_min_word_len(), 0); // Before any inserts
+        trie.insert("a");
+        trie.insert("banana");
+        trie.insert("cat");
+        assert_eq!(trie.min_word_len, 1);
+        assert_eq!(trie.max_word_len, 6);
+        assert_eq!(trie.get_min_word_len(), 1);
+    }
+}
