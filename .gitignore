@@ -38,3 +38,4 @@ venv/
 *.log
 *.egg-info/
 .DS_Store
+multiword_anagram_fast/tests/__pycache__/test_solver.cpython-313-pytest-8.3.5.pyc
