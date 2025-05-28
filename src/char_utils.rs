@@ -3,7 +3,8 @@ use std::collections::HashMap;
 pub const ALPHABET_SIZE: usize = 26;
 
 #[inline]
-pub fn char_to_index(c: char) -> Option<usize> { // Made public
+pub fn char_to_index(c: char) -> Option<usize> {
+    // Made public
     if c.is_ascii_lowercase() {
         Some((c as u8 - b'a') as usize)
     } else {
@@ -12,7 +13,8 @@ pub fn char_to_index(c: char) -> Option<usize> { // Made public
 }
 
 #[inline]
-pub fn index_to_char(i: usize) -> char { // Made public (though not directly used by solver logic shown, might be useful)
+pub fn index_to_char(i: usize) -> char {
+    // Made public (though not directly used by solver logic shown, might be useful)
     (b'a' + i as u8) as char
 }
 
@@ -35,7 +37,10 @@ impl CharCounts {
                     _total_chars += 1;
                 } else {
                     // This case should ideally not be hit if c.is_alphabetic() and c.to_ascii_lowercase() works
-                    return Err(format!("Non-ASCII alphabetic character found after lowercase: {}", lower_c));
+                    return Err(format!(
+                        "Non-ASCII alphabetic character found after lowercase: {}",
+                        lower_c
+                    ));
                 }
             } else if !c.is_whitespace() {
                 // Ignoring non-alphabetic, non-whitespace.
@@ -44,7 +49,7 @@ impl CharCounts {
         }
         Ok(CharCounts(counts))
     }
-    
+
     pub fn total(&self) -> usize {
         self.0.iter().sum()
     }
@@ -75,9 +80,9 @@ impl CharCounts {
         }
         Ok(())
     }
-    
+
     pub fn add_mut(&mut self, other: &Self) {
-         for i in 0..ALPHABET_SIZE {
+        for i in 0..ALPHABET_SIZE {
             self.0[i] += other.0[i];
         }
     }
@@ -98,7 +103,10 @@ impl CharCounts {
                 self.0[idx] -= 1;
                 Ok(())
             } else {
-                Err(format!("Cannot decrement count for char '{}', count is already 0.", c))
+                Err(format!(
+                    "Cannot decrement count for char '{}', count is already 0.",
+                    c
+                ))
             }
         } else {
             Err(format!("Cannot decrement count for invalid char: {}", c))
@@ -107,7 +115,11 @@ impl CharCounts {
 }
 
 pub fn normalize_word(word: &str) -> String {
-    word.trim().to_ascii_lowercase().chars().filter(|c| c.is_ascii_alphabetic()).collect()
+    word.trim()
+        .to_ascii_lowercase()
+        .chars()
+        .filter(|c| c.is_ascii_alphabetic())
+        .collect()
 }
 
 pub fn parse_char_list_to_set(s: Option<&str>) -> Option<std::collections::HashSet<char>> {
@@ -123,7 +135,6 @@ pub fn parse_char_list_to_counts(s: Option<&str>) -> Option<HashMap<char, usize>
         counts
     })
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -144,5 +155,4 @@ mod tests {
     fn test_normalize_word() {
         assert_eq!(normalize_word("  Apple Pie!  "), "applepie");
     }
-    
 }

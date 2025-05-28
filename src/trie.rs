@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 // Removed CharCounts, index_to_char as they are not directly used here.
 // char_to_index was also removed as it was for direct access, normalize_word handles char properties.
-use super::char_utils::normalize_word; 
+use super::char_utils::normalize_word;
 
 #[derive(Default)]
 pub struct TrieNode {
@@ -17,10 +17,10 @@ pub struct Trie {
 
 impl Trie {
     pub fn new() -> Self {
-        Trie { 
-            root: TrieNode::default(), 
-            min_word_len: usize::MAX, 
-            max_word_len: 0 
+        Trie {
+            root: TrieNode::default(),
+            min_word_len: usize::MAX,
+            max_word_len: 0,
         }
     }
 
@@ -42,12 +42,13 @@ impl Trie {
     }
 
     pub fn get_min_word_len(&self) -> usize {
-        if self.min_word_len == usize::MAX { 0 } else { self.min_word_len }
+        if self.min_word_len == usize::MAX {
+            0
+        } else {
+            self.min_word_len
+        }
     }
 }
-
-
-
 
 #[cfg(test)]
 mod tests {
