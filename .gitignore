@@ -8,6 +8,9 @@ multiword_anagram_fast/*.pyc
 multiword_anagram_fast/*.pyo
 multiword_anagram_fast/*.pyd
 
+target/
+Cargo.lock
+
 # uv-specific files
 multiword_anagram_fast/.python-version
 multiword_anagram_fast/uv.lock

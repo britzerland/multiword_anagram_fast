@@ -4,19 +4,19 @@ from typing import List, Optional, Dict, Set
 # This will be the Rust extension module. Name depends on maturin config.
 # from .core import Solver as CoreSolver 
 # For now, let's assume maturin makes it available as:
-from multiword_anagram_fast.core_logic import Solver as CoreSolver
+from multiword_anagram_fast.core import Solver as CoreSolver
 
 
 class AnagramSolver:
     def __init__(self, default_dictionary_path: Optional[str] = None):
         self._solver = CoreSolver()
         self._bundled_dict_path = os.path.join(
-            os.path.dirname(__file__), "resources"
+            os.path.dirname(__file__), "dictionaries"
         )
 
         if default_dictionary_path:
-            if default_dictionary_path.lower() == "dictionarya.txt": # example bundled
-                 self.load_dictionary_file(os.path.join(self._bundled_dict_path, "dictionaryA.txt"))
+            if default_dictionary_path.lower() == "default": # example bundled
+                 self.load_dictionary_file(os.path.join(self._bundled_dict_path, "ACDLC0A.txt"))
             # Add more bundled dicts here
             else: # Assumed to be a custom path
                 self.load_dictionary_file(default_dictionary_path)
