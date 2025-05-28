@@ -9,5 +9,5 @@ edition = "2021"
 pyo3 = { version = "0.25.0", features = ["extension-module"] } # Example if using PyO3
 
 [lib]
-name = "multiword_anagram_fast_core"
+name = "core"
 crate-type = ["cdylib"] # If building for PyO3 directly in this crate
