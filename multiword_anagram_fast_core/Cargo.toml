@@ -1,5 +1,5 @@
 [package]
-name = "anagram_solver_core"
+name = "multiword_anagram_fast_core"
 version = "0.1.0"
 edition = "2021"
 
@@ -9,5 +9,5 @@ edition = "2021"
 pyo3 = { version = "0.25.0", features = ["extension-module"] } # Example if using PyO3
 
 [lib]
-name = "anagram_solver_core"
+name = "multiword_anagram_fast_core"
 crate-type = ["cdylib"] # If building for PyO3 directly in this crate

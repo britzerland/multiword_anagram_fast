@@ -4,7 +4,7 @@ requires = ["maturin>=1.0,<2.0"]
 build-backend = "maturin"
 
 [project]
-name = "pyanagram_solver"
+name = "multiword_anagram_fast"
 version = "0.1.0"
 description = "Fast multiword anagram solver."
 requires-python = ">=3.13"
@@ -22,12 +22,12 @@ features = ["pyo3/extension-module"] # If pyo3 features are conditional
 # For a workspace structure, point to the Rust crate:
 manifest-path = "../anagram_solver_core/Cargo.toml" 
 # For a non-workspace (single crate for lib and bindings, as sketched):
-# This assumes Cargo.toml in pyanagram_solver/ is for the bindings module.
+# This assumes Cargo.toml in multiword_anagram_fast/ is for the bindings module.
 # The current `lib.rs` is in `anagram_solver_core`. A common setup is:
-# pyanagram_solver/
+# multiword_anagram_fast/
 #  Cargo.toml (for the rust extension module)
 #  src/lib.rs (the PyO3 bindings, which use anagram_solver_core as a dependency)
-#  pyanagram_solver/ (python files)
+#  multiword_anagram_fast/ (python files)
 #  ...
 # For now, let's assume `anagram_solver_core` itself is built as the cdylib.
 # So, `maturin build` would be run from `anagram_solver_core` or configured to point there.
@@ -35,4 +35,4 @@ manifest-path = "../anagram_solver_core/Cargo.toml"
 # then maturin can build it directly.
 # The manifest-path in pyproject.toml would point to anagram_solver_core/Cargo.toml
 
-module-name = "pyanagram_solver.core" # where the rust extension will be available
+module-name = "multiword_anagram_fast.core_logic" # where the rust extension will be available

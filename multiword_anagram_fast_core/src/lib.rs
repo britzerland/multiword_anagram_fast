@@ -67,7 +67,7 @@ impl PySolver {
 
 // Updated #[pymodule] signature for PyO3 >= 0.18 (approx)
 #[pymodule]
-fn pyanagram_solver_core(_py: Python<'_>, m: &Bound<'_, PyModule>) -> PyResult<()> {
+fn multiword_anagram_fast_core(_py: Python<'_>, m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PySolver>()?;
     Ok(())
 }

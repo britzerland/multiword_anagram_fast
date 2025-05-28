@@ -4,7 +4,7 @@ from typing import List, Optional, Dict, Set
 # This will be the Rust extension module. Name depends on maturin config.
 # from .core import Solver as CoreSolver 
 # For now, let's assume maturin makes it available as:
-from pyanagram_solver.core import Solver as CoreSolver
+from multiword_anagram_fast.core import Solver as CoreSolver
 
 
 class AnagramSolver:

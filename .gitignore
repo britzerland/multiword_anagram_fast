@@ -1,25 +1,26 @@
 # Python virtual environment
-pyanagram_solver/.venv/
-pyanagram_solver/venv/
+multiword_anagram_fast/.venv/
+multiword_anagram_fast/venv/
 
 # Python cache files
-pyanagram_solver/__pycache__/
-pyanagram_solver/*.pyc
-pyanagram_solver/*.pyo
-pyanagram_solver/*.pyd
+multiword_anagram_fast/__pycache__/
+multiword_anagram_fast/*.pyc
+multiword_anagram_fast/*.pyo
+multiword_anagram_fast/*.pyd
 
 # uv-specific files
-pyanagram_solver/.python-version
-pyanagram_solver/uv.lock
+multiword_anagram_fast/.python-version
+multiword_anagram_fast/uv.lock
 
 # jupyter notebooks
-pyanagram_solver/.ipynb_checkpoints/
+multiword_anagram_fast/.ipynb_checkpoints/
 *.ipynb
 
 # maturin build stuff
 anagram_solver_core/target/
 anagram_solver_core/Cargo.lock
-
+multiword_anagram_fast_core/target/
+multiword_anagram_fast_core/Cargo.lock
 #venv
 venv/
 
