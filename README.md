@@ -27,20 +27,25 @@ A more involved example, using constraints:
     phrase = "tendedrosevine"
     must_start_with = "TR"
     must_not_start_with = "DNI"
+    contains_patterns = ["TE", "IN"]
     max_words = 4
     min_word_length = 2
     timeout_seconds = 30
     max_solutions = 20000
 
-    solver.solve(phrase, must_start_with=must_start_with, must_not_start_with=must_not_start_with,
-        max_words=max_words, min_word_length=min_word_length, timeout_seconds=timeout_seconds,
-        max_solutions=max_solutions)
+    solver.solve(phrase, must_start_with=must_start_with, 
+                 must_not_start_with=must_not_start_with,
+                 contains_patterns=contains_patterns,
+                 max_words=max_words, min_word_length=min_word_length,
+                 timeout_seconds=timeout_seconds,
+                 max_solutions=max_solutions)
 
 All input options and their default settings:
 
     must_start_with: None
     can_only_ever_start_with: None
     must_not_start_with: None
+    contains_patterns: None
     max_words: 4
     min_word_length: 2
     timeout_seconds: 30
@@ -64,10 +69,11 @@ e.g.
     # download small wordlist    
     !wget https://raw.githubusercontent.com/britzerland/baronsbafflers/refs/heads/main/blueprince.txt -O blueprince.txt
 
-    # load new words into existing dictionary
+    # load newly downloaded words into existing english dictionary
     solver.load_dictionary_file("blueprince.txt")
 
-    
+    solver.solve("ovinn nevarei")
+
 
 # Use default english 
 

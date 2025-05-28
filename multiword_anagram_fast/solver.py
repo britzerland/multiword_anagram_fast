@@ -47,11 +47,11 @@ class AnagramSolver:
         must_start_with: Optional[str] = None,
         can_only_ever_start_with: Optional[str] = None,
         must_not_start_with: Optional[str] = None,
+        contains_patterns: Optional[List[str]] = None,
         max_words: Optional[int] = 4,
         min_word_length: Optional[int] = 2,
         timeout_seconds: Optional[float] = 30, 
         max_solutions: Optional[int] = 20000,
-        contains_patterns: Optional[List[str]] = None,
         output_file: Optional[str] = None,
     ) -> str: #     -> List[List[str]]:
         """
@@ -63,9 +63,14 @@ class AnagramSolver:
                              words starting with these characters, matching counts (e.g., two Ts, one R).
             can_only_ever_start_with: A string of characters (e.g., "ABC"). All words in any
                                       solution must start with one of these characters.
+            contains_patterns: A list of strings. Answers must contain ALL of these patterns
+                at least ONCE at any point. Spaces are not ignored when apttern matching.
             must_not_start_with: A string of characters (e.g., "XYZ"). No word in any solution
                                  may start with one of these characters.
             max_words: The maximum number of words allowed in a solution.
+            min_word_length: Dont allow smaller words if you dont want them.
+            timeout_seconds: Stop it from running forever on huge anagrams.
+            max_solutions: Stop at 20000 solutions. Its not like you are reading all those...
             output_file: If provided, results are saved to this file. Set to None to disable.
 
         Returns:
@@ -74,6 +79,7 @@ class AnagramSolver:
         """
         if not phrase:
             return []
+        phrase = phrase.replace(" ","")
         
         if output_file is None:
             # create a descriptive file name
@@ -85,7 +91,7 @@ class AnagramSolver:
             if min_word_length is not None: output_file += f"_minL{min_word_length}"
             if contains_patterns is not None:
                 for pat in contains_patterns:
-                    if pat: output_file += f"_pat{pat}"
+                    if pat: output_file += f"_pat{pat.upper()}"
             output_file += ".txt"
 
         # test we can even write to file at all before doing all the processing.

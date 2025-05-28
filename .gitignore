@@ -20,8 +20,10 @@ multiword_anagram_fast/.ipynb_checkpoints/
 *.ipynb
 .ipynb_checkpoints/
 uv.lock
+./*.txt
 solutions*.txt
 anagram_*.txt
+blueprince.txt
 
 # maturin build stuff
 multiword_anagram_fast_core/target/
