@@ -284,14 +284,17 @@ impl AnagramSolver {
                 .unwrap_or_else(|e| eprintln!("Log write error: {}", e));
             }
             if !current_path.is_empty() {
-                
-
-                if let Some(file) = log_file.as_deref_mut() { writeln!(file, "    Current path is not empty: {:?}", current_path).unwrap_or_else(|e| eprintln!("Log write error: {}", e)); }
+                if let Some(file) = log_file.as_deref_mut() {
+                    writeln!(file, "    Current path is not empty: {:?}", current_path)
+                        .unwrap_or_else(|e| eprintln!("Log write error: {}", e));
+                }
 
                 // Check max_words constraint for the formed solution
                 if let Some(max_w) = constraints.max_words {
                     if current_path.len() > max_w {
-                        if let Some(file) = log_file.as_deref_mut() { writeln!(file, "    PRUNED BASE CASE: Solution path len {} > max_words {}. Path: {:?}", current_path.len(), max_w, current_path).unwrap_or_else(|e| eprintln!("Log write error: {}", e)); }
+                        if let Some(file) = log_file.as_deref_mut() {
+                            writeln!(file, "    PRUNED BASE CASE: Solution path len {} > max_words {}. Path: {:?}", current_path.len(), max_w, current_path).unwrap_or_else(|e| eprintln!("Log write error: {}", e));
+                        }
                         return;
                     }
                 }
@@ -312,10 +315,10 @@ impl AnagramSolver {
                     for (req_char, req_count) in required_starts_map.iter() {
                         if actual_starts_counts.get(req_char).unwrap_or(&0) < req_count {
                             must_start_with_satisfied = false;
-                            if let Some(file) = log_file.as_deref_mut() { 
+                            if let Some(file) = log_file.as_deref_mut() {
                                 writeln!(file, "    PRUNED BASE CASE: must_start_with: char '{}' needed {} times, found {} times. Path: {:?}", 
                                         req_char, req_count, actual_starts_counts.get(req_char).unwrap_or(&0), current_path)
-                                    .unwrap_or_else(|e| eprintln!("Log write error: {}", e)); 
+                                    .unwrap_or_else(|e| eprintln!("Log write error: {}", e));
                             }
                             break; // No need to check further required starts for this solution
                         }
@@ -323,10 +326,21 @@ impl AnagramSolver {
                     if !must_start_with_satisfied {
                         return; // Constraint not met, discard this solution path
                     }
-                    if let Some(file) = log_file.as_deref_mut() { writeln!(file, "    must_start_with constraint SATISFIED. Path: {:?}", current_path).unwrap_or_else(|e| eprintln!("Log write error: {}", e));}
-                } else if let Some(file) = log_file.as_deref_mut() { 
-                    writeln!(file, "    No must_start_with constraint active. Path: {:?}", current_path
-                        ).unwrap_or_else(|e| eprintln!("Log write error: {}", e));
+                    if let Some(file) = log_file.as_deref_mut() {
+                        writeln!(
+                            file,
+                            "    must_start_with constraint SATISFIED. Path: {:?}",
+                            current_path
+                        )
+                        .unwrap_or_else(|e| eprintln!("Log write error: {}", e));
+                    }
+                } else if let Some(file) = log_file.as_deref_mut() {
+                    writeln!(
+                        file,
+                        "    No must_start_with constraint active. Path: {:?}",
+                        current_path
+                    )
+                    .unwrap_or_else(|e| eprintln!("Log write error: {}", e));
                 }
 
                 // FINAL PATTERN CHECK FOR SOLUTION
@@ -480,7 +494,7 @@ impl AnagramSolver {
             internal_state,
             log_file.as_deref_mut(), // Pass log_file
         );
-        
+
         //if let Some(file) = log_file.as_deref_mut() {
         if let Some(file) = log_file {
             writeln!(file, "BACKTRACK EXIT: path={:?}", current_path)
