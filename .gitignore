@@ -17,8 +17,8 @@ multiword_anagram_fast/.ipynb_checkpoints/
 *.ipynb
 
 # maturin build stuff
-anagram_solver_core/target/
-anagram_solver_core/Cargo.lock
+multiword_anagram_fast_core/target/
+multiword_anagram_fast_core/Cargo.lock
 multiword_anagram_fast_core/target/
 multiword_anagram_fast_core/Cargo.lock
 #venv
