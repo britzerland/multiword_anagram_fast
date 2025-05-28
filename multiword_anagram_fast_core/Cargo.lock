@@ -3,13 +3,6 @@
 version = 4
 
 [[package]]
-name = "anagram_solver_core"
-version = "0.1.0"
-dependencies = [
- "pyo3",
-]
-
-[[package]]
 name = "autocfg"
 version = "1.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -40,6 +33,13 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "488016bfae457b036d996092f6cb448677611ce4449e970ceaf42695203f218a"
 dependencies = [
  "autocfg",
+]
+
+[[package]]
+name = "multiword_anagram_fast_core"
+version = "0.1.0"
+dependencies = [
+ "pyo3",
 ]
 
 [[package]]
