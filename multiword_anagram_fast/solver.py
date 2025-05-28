@@ -8,7 +8,7 @@ from multiword_anagram_fast.core import Solver as CoreSolver
 
 
 class AnagramSolver:
-    def __init__(self, default_dictionary_path: Optional[str] = None):
+    def __init__(self, default_dictionary_path: Optional[str] = ""):
         self._solver = CoreSolver()
         self._bundled_dict_path = os.path.join(
             os.path.dirname(__file__), "dictionaries"
@@ -26,8 +26,10 @@ class AnagramSolver:
     def load_dictionary_file(self, path: str):
         """Loads words from a .txt file into the solver's dictionary."""
         try:
+            #print("loading from: ",self._bundled_dict_path)
             self._solver.load_dictionary_from_path(path)
         except Exception as e:
+            #print(self._bundled_dict_path)
             raise IOError(f"Failed to load dictionary from {path}: {e}")
 
     def add_words(self, words: List[str]):
@@ -37,6 +39,7 @@ class AnagramSolver:
     def add_word(self, word: str):
         """Adds a single word to the solver's dictionary."""
         self._solver.add_word(word)
+
 
     def solve(
         self,
@@ -48,8 +51,8 @@ class AnagramSolver:
         min_word_length: Optional[int] = 2,
         timeout_seconds: Optional[float] = 30, 
         max_solutions: Optional[int] = 20000,    
-        output_file: Optional[str] = "anagram_solutions.txt",
-    ) -> List[List[str]]:
+        output_file: Optional[str] = None,
+    ) -> str: #     -> List[List[str]]:
         """
         Finds multi-word anagrams for the given phrase.
 
@@ -65,11 +68,31 @@ class AnagramSolver:
             output_file: If provided, results are saved to this file. Set to None to disable.
 
         Returns:
-            A list of solutions, where each solution is a list of words.
+            A string that is path to results txt file.
             Solutions are sorted by quality (fewest words first, then by max length of shortest word).
         """
         if not phrase:
             return []
+        
+        if output_file is None:
+            # create a descriptive file name
+            output_file = f"anagram_{phrase}"
+            if must_start_with is not None: output_file += f"_must_{must_start_with.upper()}"
+            if can_only_ever_start_with is not None:  output_file += f"_only_{can_only_ever_start_with.upper()}"
+            if must_not_start_with is not None:  output_file += f"_not_{must_not_start_with.upper()}"
+            if max_words is not None: output_file += f"_maxW_{max_words}"
+            if min_word_length is not None: output_file += f"_minL_{min_word_length}"
+            output_file += ".txt"
+
+        # test we can even write to file at all before doing all the processing.
+        try:
+            with open(output_file, "w", encoding="utf-8") as f:
+                f.write(" ")
+            #print(f"Solutions saved to {os.path.join(os.getcwd(), output_file)}")
+        except IOError as e:
+            print(f"Warning: Could not write to file {output_file}: {e}")
+            print("Aborting.")
+            return ""
 
         results = self._solver.solve(
             phrase,
@@ -82,16 +105,15 @@ class AnagramSolver:
             max_solutions,   
         )
 
-        if output_file:
-            try:
-                with open(output_file, "w", encoding="utf-8") as f:
-                    for sol_list in results:
-                        f.write(" ".join(sol_list) + "\n")
-                print(f"Solutions saved to {os.path.join(os.getcwd(), output_file)}")
-            except IOError as e:
-                print(f"Warning: Could not write solutions to file {output_file}: {e}")
+        try:
+            with open(output_file, "w", encoding="utf-8") as f:
+                for sol_list in results:
+                    f.write(" ".join(sol_list) + "\n")
+            print(f"{len(results)} solutions saved to {os.path.join(os.getcwd(), output_file)}")
+        except IOError as e:
+            print(f"Warning: Could not write solutions to file {output_file}: {e}")
         
-        return results
+        return output_file
 
     def get_bundled_dictionary_path(self, name: str = "ACDLC0A.txt") -> str:
         """Returns the path to a bundled dictionary."""

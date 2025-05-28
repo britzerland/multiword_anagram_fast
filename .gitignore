@@ -21,6 +21,7 @@ multiword_anagram_fast/.ipynb_checkpoints/
 .ipynb_checkpoints/
 uv.lock
 solutions*.txt
+anagram_*.txt
 
 # maturin build stuff
 multiword_anagram_fast_core/target/
