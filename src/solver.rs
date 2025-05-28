@@ -7,15 +7,20 @@ use super::trie::{Trie, TrieNode};
 // normalize_word and others are used within AnagramSolver methods but called from char_utils.
 use super::char_utils::CharCounts; 
 
+pub struct SolverInternalState {
+    pub start_time: Instant,
+    pub timed_out: bool,
+    pub solutions_found_count: usize,
+}
 
 pub struct SolverConstraints {
     pub must_start_with: Option<HashMap<char, usize>>,
     pub can_only_ever_start_with: Option<HashSet<char>>,
     pub must_not_start_with: Option<HashSet<char>>,
     pub max_words: Option<usize>,
-    pub min_word_length: Option<usize>, // <--- NEW FIELD
-    pub timeout_seconds: Option<f64>,    // <--- NEW FIELD (seconds as f64 for Duration)
-    pub max_solutions: Option<usize>,   // <--- NEW FIELD
+    pub min_word_length: Option<usize>,
+    pub timeout_seconds: Option<f64>,  
+    pub max_solutions: Option<usize>,  
 }
 
 impl SolverConstraints {
