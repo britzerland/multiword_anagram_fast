@@ -1,6 +1,5 @@
 def main():
-    print("Hello from pyanagram-solver!")
-
+    pass
 
 if __name__ == "__main__":
     main()
