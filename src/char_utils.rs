@@ -13,6 +13,7 @@ pub fn char_to_index(c: char) -> Option<usize> {
 }
 
 #[inline]
+#[allow(dead_code)]
 pub fn index_to_char(i: usize) -> char {
     // Made public (though not directly used by solver logic shown, might be useful)
     (b'a' + i as u8) as char
@@ -21,6 +22,7 @@ pub fn index_to_char(i: usize) -> char {
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct CharCounts([usize; ALPHABET_SIZE]); // Inner field remains private
 
+#[allow(dead_code)]
 impl CharCounts {
     pub fn new() -> Self {
         CharCounts([0; ALPHABET_SIZE])

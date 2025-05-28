@@ -77,6 +77,7 @@ impl AnagramSolver {
         self.trie.insert(word);
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub fn solve(&self, phrase: &str, constraints: &SolverConstraints) -> Vec<Vec<String>> {
         // ---> Open Log File <---
         let mut log_file = File::create(DEBUG_LOG_FILE)
@@ -146,6 +147,7 @@ impl AnagramSolver {
         final_solutions
     }
 
+    #[allow(clippy::too_many_arguments)]
     fn backtrack(
         &self,
         current_path: &mut Vec<String>,
@@ -282,7 +284,50 @@ impl AnagramSolver {
                 .unwrap_or_else(|e| eprintln!("Log write error: {}", e));
             }
             if !current_path.is_empty() {
-                // ... (other base case checks like must_start_with) ...
+                
+
+                if let Some(file) = log_file.as_deref_mut() { writeln!(file, "    Current path is not empty: {:?}", current_path).unwrap_or_else(|e| eprintln!("Log write error: {}", e)); }
+
+                // Check max_words constraint for the formed solution
+                if let Some(max_w) = constraints.max_words {
+                    if current_path.len() > max_w {
+                        if let Some(file) = log_file.as_deref_mut() { writeln!(file, "    PRUNED BASE CASE: Solution path len {} > max_words {}. Path: {:?}", current_path.len(), max_w, current_path).unwrap_or_else(|e| eprintln!("Log write error: {}", e)); }
+                        return;
+                    }
+                }
+
+                // Check must_start_with constraint
+                if let Some(required_starts_map) = &constraints.must_start_with {
+                    let mut actual_starts_counts: HashMap<char, usize> = HashMap::new();
+                    for word in current_path.iter() {
+                        if let Some(first_char) = word.chars().next() {
+                            // Ensure first_char is lowercase for consistent map keys,
+                            // assuming words in path are already lowercase.
+                            // If not, first_char.to_ascii_lowercase()
+                            *actual_starts_counts.entry(first_char).or_insert(0) += 1;
+                        }
+                    }
+
+                    let mut must_start_with_satisfied = true;
+                    for (req_char, req_count) in required_starts_map.iter() {
+                        if actual_starts_counts.get(req_char).unwrap_or(&0) < req_count {
+                            must_start_with_satisfied = false;
+                            if let Some(file) = log_file.as_deref_mut() { 
+                                writeln!(file, "    PRUNED BASE CASE: must_start_with: char '{}' needed {} times, found {} times. Path: {:?}", 
+                                        req_char, req_count, actual_starts_counts.get(req_char).unwrap_or(&0), current_path)
+                                    .unwrap_or_else(|e| eprintln!("Log write error: {}", e)); 
+                            }
+                            break; // No need to check further required starts for this solution
+                        }
+                    }
+                    if !must_start_with_satisfied {
+                        return; // Constraint not met, discard this solution path
+                    }
+                    if let Some(file) = log_file.as_deref_mut() { writeln!(file, "    must_start_with constraint SATISFIED. Path: {:?}", current_path).unwrap_or_else(|e| eprintln!("Log write error: {}", e));}
+                } else if let Some(file) = log_file.as_deref_mut() { 
+                    writeln!(file, "    No must_start_with constraint active. Path: {:?}", current_path
+                        ).unwrap_or_else(|e| eprintln!("Log write error: {}", e));
+                }
 
                 // FINAL PATTERN CHECK FOR SOLUTION
                 if let Some(satisfied_mask) = &internal_state.patterns_satisfied_mask {
@@ -297,15 +342,13 @@ impl AnagramSolver {
                         writeln!(file, "    Patterns satisfied (or no pattern constraint). Mask: {:?}. Path: {:?}", satisfied_mask, current_path
                             ).unwrap_or_else(|e| eprintln!("Log write error: {}", e));
                     }
-                } else {
-                    if let Some(file) = log_file.as_deref_mut() {
-                        writeln!(
-                            file,
-                            "    No pattern constraint active in base case. Path: {:?}",
-                            current_path
-                        )
-                        .unwrap_or_else(|e| eprintln!("Log write error: {}", e));
-                    }
+                } else if let Some(file) = log_file.as_deref_mut() {
+                    writeln!(
+                        file,
+                        "    No pattern constraint active in base case. Path: {:?}",
+                        current_path
+                    )
+                    .unwrap_or_else(|e| eprintln!("Log write error: {}", e));
                 }
 
                 let mut solution_candidate = current_path.clone();
@@ -343,21 +386,17 @@ impl AnagramSolver {
                             return;
                         }
                     }
-                } else {
-                    if let Some(file) = log_file.as_deref_mut() {
-                        writeln!(file, "    Solution DUPLICATE. Path: {:?}", current_path)
-                            .unwrap_or_else(|e| eprintln!("Log write error: {}", e));
-                    }
+                } else if let Some(file) = log_file.as_deref_mut() {
+                    writeln!(file, "    Solution DUPLICATE. Path: {:?}", current_path)
+                        .unwrap_or_else(|e| eprintln!("Log write error: {}", e));
                 }
-            } else {
-                if let Some(file) = log_file.as_deref_mut() {
-                    writeln!(
-                        file,
-                        "    Current path IS EMPTY in base case. Path: {:?}",
-                        current_path
-                    )
-                    .unwrap_or_else(|e| eprintln!("Log write error: {}", e));
-                }
+            } else if let Some(file) = log_file.as_deref_mut() {
+                writeln!(
+                    file,
+                    "    Current path IS EMPTY in base case. Path: {:?}",
+                    current_path
+                )
+                .unwrap_or_else(|e| eprintln!("Log write error: {}", e));
             }
             if let Some(file) = log_file.as_deref_mut() {
                 writeln!(file, "  Returning from BASE CASE. Path: {:?}", current_path)
@@ -441,12 +480,15 @@ impl AnagramSolver {
             internal_state,
             log_file.as_deref_mut(), // Pass log_file
         );
-        if let Some(file) = log_file.as_deref_mut() {
+        
+        //if let Some(file) = log_file.as_deref_mut() {
+        if let Some(file) = log_file {
             writeln!(file, "BACKTRACK EXIT: path={:?}", current_path)
                 .unwrap_or_else(|e| eprintln!("Log write error: {}", e));
         }
     }
 
+    #[allow(clippy::too_many_arguments)]
     fn find_one_word_recursive(
         &self,
         current_trie_node: &TrieNode,
@@ -465,17 +507,17 @@ impl AnagramSolver {
         }
 
         // REMOVE THIS SPECIFIC DEBUG
-        if word_so_far == "eleven" {
-            // Example specific debug
-            if let Some(file) = log_file.as_deref_mut() {
-                writeln!(
-                    file,
-                    "    FOWR: word_so_far IS 'eleven'. current_trie_node.is_end_of_word = {}",
-                    current_trie_node.is_end_of_word
-                )
-                .unwrap_or_else(|e| eprintln!("Log write error: {}", e));
-            }
-        }
+        //if word_so_far == "eleven" {
+        //    // Example specific debug
+        //    if let Some(file) = log_file.as_deref_mut() {
+        //        writeln!(
+        //            file,
+        //            "    FOWR: word_so_far IS 'eleven'. current_trie_node.is_end_of_word = {}",
+        //            current_trie_node.is_end_of_word
+        //        )
+        //        .unwrap_or_else(|e| eprintln!("Log write error: {}", e));
+        //    }
+        //}
 
         // Limit checks
         if internal_state.timed_out {
@@ -610,17 +652,15 @@ impl AnagramSolver {
                         return;
                     }
                 }
-            } else {
-                if let Some(file) = log_file.as_deref_mut() {
-                    writeln!(
-                        file,
-                        "      FOWR: '{}' FAILED min_length (len {}). Path: {:?}",
-                        word_so_far,
-                        word_so_far.len(),
-                        path
-                    )
-                    .unwrap_or_else(|e| eprintln!("Log write error: {}", e));
-                }
+            } else if let Some(file) = log_file.as_deref_mut() {
+                writeln!(
+                    file,
+                    "      FOWR: '{}' FAILED min_length (len {}). Path: {:?}",
+                    word_so_far,
+                    word_so_far.len(),
+                    path
+                )
+                .unwrap_or_else(|e| eprintln!("Log write error: {}", e));
             }
         }
 
@@ -674,7 +714,8 @@ impl AnagramSolver {
                 }
             }
         }
-        if let Some(file) = log_file.as_deref_mut() {
+        //if let Some(file) = log_file.as_deref_mut() {
+        if let Some(file) = log_file {
             writeln!(file, "  FOWR EXIT: word_so_far='{}'", word_so_far)
                 .unwrap_or_else(|e| eprintln!("Log write error: {}", e));
         }

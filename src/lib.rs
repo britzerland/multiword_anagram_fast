@@ -1,4 +1,5 @@
 use pyo3::prelude::*;
+#[allow(unused_imports)]
 use std::collections::{HashMap, HashSet}; // These ARE needed for char_utils return types
 
 mod char_utils;
@@ -44,6 +45,7 @@ impl PySolver {
         self.solver.add_word(&word);
     }
 
+    #[allow(clippy::too_many_arguments)]
     #[pyo3(signature = (
         phrase,
         must_start_with=None,

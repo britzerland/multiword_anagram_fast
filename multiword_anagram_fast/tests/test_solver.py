@@ -46,6 +46,19 @@ def test_solve_with_contains_pattern_python(solver_with_test_dict):
     for sol in solutions:
         assert any("ven" in word for word in sol), f"Pattern 'ven' not found in {sol}"
 
+
+def test_solve_start_with_only_n(solver_with_test_dict):
+    solutions = solver_with_test_dict._solve("ten", must_start_with="n") # normalized input
+    solution_sets = {frozenset(s) for s in solutions}
+    
+    expected_sets = [
+        frozenset(["net"]),
+    ]
+    # Check if at least one of the expected angrams for "ate" is present with "eleven"
+    found = any(es in solution_sets for es in expected_sets)
+    assert found, f"Expected anagrams for 'ten' beginning with n were not found. Got: {solutions}"
+
+
 def test_solve_listen_silent_regression(solver_with_test_dict):
     # A known regression test case
     solutions = solver_with_test_dict._solve("listensilent", 
