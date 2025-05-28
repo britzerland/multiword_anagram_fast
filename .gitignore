@@ -7,7 +7,7 @@ multiword_anagram_fast/__pycache__/
 multiword_anagram_fast/*.pyc
 multiword_anagram_fast/*.pyo
 multiword_anagram_fast/*.pyd
-
+multiword_anagram_fast/tests/__pycache__/
 target/
 Cargo.lock
 
