@@ -10,6 +10,7 @@ multiword_anagram_fast/*.pyd
 multiword_anagram_fast/tests/__pycache__/
 target/
 Cargo.lock
+*.pyc
 
 # uv-specific files
 multiword_anagram_fast/.python-version
