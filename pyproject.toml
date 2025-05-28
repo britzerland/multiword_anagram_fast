@@ -20,7 +20,7 @@ dependencies = [
 [tool.maturin]
 features = ["pyo3/extension-module"] # If pyo3 features are conditional
 # For a workspace structure, point to the Rust crate:
-manifest-path = "../multiword_anagram_fast_core/Cargo.toml" 
+manifest-path = "./Cargo.toml" 
 # For a non-workspace (single crate for lib and bindings, as sketched):
 # This assumes Cargo.toml in multiword_anagram_fast/ is for the bindings module.
 # The current `lib.rs` is in `multiword_anagram_fast_core`. A common setup is:
@@ -35,4 +35,4 @@ manifest-path = "../multiword_anagram_fast_core/Cargo.toml"
 # then maturin can build it directly.
 # The manifest-path in pyproject.toml would point to multiword_anagram_fast_core/Cargo.toml
 
-module-name = "multiword_anagram_fast.core_logic" # where the rust extension will be available
+module-name = "multiword_anagram_fast.core" # where the rust extension will be available
