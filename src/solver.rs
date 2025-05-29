@@ -79,13 +79,26 @@ impl AnagramSolver {
 
     #[allow(clippy::too_many_arguments)]
     pub fn solve(&self, phrase: &str, constraints: &SolverConstraints) -> Vec<Vec<String>> {
-        // ---> Open Log File <---
-        let mut log_file = File::create(DEBUG_LOG_FILE)
-            .map_err(|e| {
+        
+        // You run your Python script like: ANAGRAM_DEBUG_LOG=1 python your_script.py to enable logging.
+
+        let enable_logging = std::env::var("ANAGRAM_DEBUG_LOG").is_ok();
+        let mut log_file: Option<std::fs::File> = if enable_logging {
+            std::fs::File::create(DEBUG_LOG_FILE).map_err(|e| {
                 eprintln!("Failed to create log file {}: {}", DEBUG_LOG_FILE, e);
-                e // Propagate error if you want to handle it more gracefully, or just let it be
-            })
-            .ok(); // Continue even if log file fails, by making it an Option<File>
+                e
+            }).ok()
+        } else {
+            None
+        };
+        
+        //// ---> Open Log File <---
+        //let mut log_file = File::create(DEBUG_LOG_FILE)
+        //    .map_err(|e| {
+        //        eprintln!("Failed to create log file {}: {}", DEBUG_LOG_FILE, e);
+        //        e // Propagate error if you want to handle it more gracefully, or just let it be
+        //    })
+        //    .ok(); // Continue even if log file fails, by making it an Option<File>
         if let Some(file) = log_file.as_mut() {
             writeln!(file, "--- Solving for phrase: '{}' ---", phrase)
                 .unwrap_or_else(|e| eprintln!("Log write error: {}", e));
@@ -156,7 +169,7 @@ impl AnagramSolver {
         constraints: &SolverConstraints,
         solutions_set: &mut HashSet<Vec<String>>,
         internal_state: &mut SolverInternalState,
-        mut log_file: Option<&mut File>, // <--- Receive internal state
+        mut log_file: Option<&mut File>,
     ) {
         if let Some(file) = log_file.as_deref_mut() {
             // as_deref_mut for Option<&mut T> -> Option<&mut T>
