@@ -79,19 +79,20 @@ impl AnagramSolver {
 
     #[allow(clippy::too_many_arguments)]
     pub fn solve(&self, phrase: &str, constraints: &SolverConstraints) -> Vec<Vec<String>> {
-        
         // You run your Python script like: ANAGRAM_DEBUG_LOG=1 python your_script.py to enable logging.
 
         let enable_logging = std::env::var("ANAGRAM_DEBUG_LOG").is_ok();
         let mut log_file: Option<std::fs::File> = if enable_logging {
-            std::fs::File::create(DEBUG_LOG_FILE).map_err(|e| {
-                eprintln!("Failed to create log file {}: {}", DEBUG_LOG_FILE, e);
-                e
-            }).ok()
+            std::fs::File::create(DEBUG_LOG_FILE)
+                .map_err(|e| {
+                    eprintln!("Failed to create log file {}: {}", DEBUG_LOG_FILE, e);
+                    e
+                })
+                .ok()
         } else {
             None
         };
-        
+
         //// ---> Open Log File <---
         //let mut log_file = File::create(DEBUG_LOG_FILE)
         //    .map_err(|e| {
